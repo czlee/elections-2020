@@ -32,13 +32,13 @@ checked; the site changes, so re-check anything old before relying on it.
 | 2026 | `https://www.electionresults.govt.nz/electionresults_2026_preliminary/xml/` | preliminary count. The live feed was at `https://electionresults.govt.nz/xml/` on 8 November 2026 and has since moved. |
 | 2023 | `https://www.electionresults.govt.nz/electionresults_2023/xml/` | official results (`updated="2024-11-10"`) |
 | 2020 | `https://www.electionresults.govt.nz/electionresults_2020/xml/` | official results (`updated="2020-11-20"`) |
-| 2017 | `https://www.electionresults.govt.nz/electionresults_2017/xml/` | `election.xml` exists; contents not yet inspected |
+| 2017 | `https://www.electionresults.govt.nz/electionresults_2017/xml/` | official results (`updated="2017-10-07"`), 71 electorates, same layout (checked 10 November 2026) |
 | 2014, 2011, 2008 | none: `electionresults_YYYY/xml/election.xml` gives a 404 | CSVs only, which are blocked |
 
 No 2023 preliminary feed found: `electionresults_2023_preliminary` gives a 404
 on both hosts.
 
-### XML layout (the same for 2020, 2023 and 2026)
+### XML layout (the same for 2017, 2020, 2023 and 2026)
 
 - Top level: `election.xml`, `electorates.xml`, `parties.xml`,
   `candidates.xml`, `statistics.xml`, `votingplaces.xml`.
@@ -103,11 +103,14 @@ on both hosts.
 
 ## Code status
 
-- `download_prelim.py`: downloads the top-level and `eNN/eNN.xml` files for one
-  feed (`--base`) into `<outdir>/raw/` and writes `candidate_votes.csv`,
-  `party_votes.csv`, `electorate_stats.csv` and `national_stats.csv`. It doesn't
-  fetch voting-place files.
-- `download.py`, `electorate.py`, `analyse.py`: the original CSV-based code (1999
+- `download.py`: downloads the top-level and `eNN/eNN.xml` files for one
+  feed into `<outdir>/raw/` and writes `candidate_votes.csv`,
+  `party_votes.csv`, `electorate_stats.csv` and `national_stats.csv`. Pick a
+  feed with `--election` (`2026-prelim` (default), `2023`, `2020`, `2017`) or
+  `--base URL`; the output defaults to `results/<election>`. It doesn't fetch
+  voting-place files. Checked 10 November 2026: it runs for 2017, 2020 and 2023,
+  and party votes summed over electorates match `election.xml` for each.
+- `legacy/` (`download.py`, `electorate.py`, `analyse.py`): the original CSV-based code (1999
   onwards). Can't currently be run because the CSVs are blocked. Expected to be
   rewritten or replaced with XML-based code. Keep them in case the CSVs become
   reachable again, since the CSVs are the only source for pre-2017 elections and

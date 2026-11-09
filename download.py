@@ -1,9 +1,11 @@
 """Downloads electorate-level results from the Electoral Commission's XML feed
 and writes tidy CSVs.
 
-During a count, the live feed at https://electionresults.govt.nz/xml/ carries
-the current election's preliminary results. Raw XML is saved under
-<outdir>/raw/ and tidy CSVs are written to <outdir>/.
+XML feeds exist for 2017, 2020 and 2023 (official results) and 2026
+(preliminary results); all share the same layout. Earlier elections have no XML
+feed, only CSVs (see legacy/). Choose a feed with --election, or give any feed's
+URL with --base. Raw XML is saved under <outdir>/raw/ and tidy CSVs are written
+to <outdir>/ (default: results/<election>).
 
 Per-voting-place files are not downloaded.
 """
@@ -14,7 +16,14 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
-LIVE_XML_BASE = "https://electionresults.govt.nz/xml/"
+# Known XML feeds. Use the www host, not archive.electionresults.govt.nz (see NOTES.md).
+ELECTIONS = {
+    "2026-prelim": "https://www.electionresults.govt.nz/electionresults_2026_preliminary/xml/",
+    "2023": "https://www.electionresults.govt.nz/electionresults_2023/xml/",
+    "2020": "https://www.electionresults.govt.nz/electionresults_2020/xml/",
+    "2017": "https://www.electionresults.govt.nz/electionresults_2017/xml/",
+}
+DEFAULT_ELECTION = "2026-prelim"
 # Python's default User-Agent is blocked by the server, so always send this one.
 USER_AGENT = "Elections Analysis"
 DELAY = 0.4  # seconds between requests, as a courtesy to the server
@@ -94,9 +103,12 @@ def main(base, outdir, force=False):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("outdir", nargs="?", default=os.path.join("results", "2026-prelim"),
-                        help="output directory (default: results/2026-prelim)")
-    parser.add_argument("--base", default=LIVE_XML_BASE, help="base URL of the XML feed (default: %(default)s)")
+    parser.add_argument("outdir", nargs="?", help="output directory (default: results/<election>)")
+    parser.add_argument("-e", "--election", choices=ELECTIONS, default=DEFAULT_ELECTION,
+                        help="which election's feed to download (default: %(default)s)")
+    parser.add_argument("--base", help="base URL of the XML feed, overriding --election")
     parser.add_argument("-f", "--force", action="store_true", help="re-download files that already exist")
     args = parser.parse_args()
-    main(args.base, args.outdir, args.force)
+    base = args.base or ELECTIONS[args.election]
+    outdir = args.outdir or os.path.join("results", args.election)
+    main(base, outdir, args.force)
