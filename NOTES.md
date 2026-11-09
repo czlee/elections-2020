@@ -38,6 +38,32 @@ checked; the site changes, so re-check anything old before relying on it.
 No 2023 preliminary feed found: `electionresults_2023_preliminary` gives a 404
 on both hosts.
 
+### 2023 preliminary count from the Wayback Machine (checked 10 November 2026)
+
+- The Wayback Machine has the HTML page for each electorate,
+  `electionresults_2023_preliminary/electorate-details-NN.html`, for 71 of 72
+  electorates, captured 27 October – 1 November 2023, all showing 100% of
+  results counted. **No. 39 (Port Waikato) is missing**, probably because it
+  had no preliminary count (a candidate died, so the electorate vote went to a
+  by-election). It has no archived XML, CSVs or spreadsheets. The only other
+  captures are summary pages and `statistics/pdf/61_ElectionDay.pdf`.
+- The pages give electorate totals only: candidate votes, party votes,
+  candidate and party informals, and a total for each side. They don't say
+  which party a candidate belongs to, and they use parties' full names
+  (`party_name` in `parties.xml`, which for the Animal Justice Party has a
+  trailing space).
+- **Rate limit:** at 1 request a second the Wayback Machine refused all
+  connections from our IP address after 17 pages, for a few minutes. 5 seconds
+  between requests worked.
+- `https://web.archive.org/web/<timestamp>id_/<url>` serves the page as
+  originally captured, without the Wayback toolbar, but still gzip-compressed.
+- Checked against the 2023 official feed: all 71 electorate names, every party
+  and every candidate match, and every candidate's party (taken from the
+  official `candidates.xml`) matches. Final votes cast are 1.14 (Invercargill)
+  to 1.54 (Māngere) times the preliminary votes cast. In 24 party rows (all
+  very small parties, the largest drop being 56 votes) and 1 candidate row,
+  the final count is lower than the preliminary count.
+
 ### XML layout (the same for 2017, 2020, 2023 and 2026)
 
 - Top level: `election.xml`, `electorates.xml`, `parties.xml`,
@@ -110,6 +136,14 @@ on both hosts.
   `--base URL`; the output defaults to `results/<election>`. It doesn't fetch
   voting-place files. Checked 10 November 2026: it runs for 2017, 2020 and 2023,
   and party votes summed over electorates match `election.xml` for each.
+- `scrape_wayback_prelim.py`: scrapes the 2023 preliminary count from the
+  Wayback Machine into `results/2023-prelim/`, writing `candidate_votes.csv` and
+  `party_votes.csv` with the same columns and names as `download.py --election
+  2023`, and an `electorate_stats.csv` with different columns (the capture's
+  timestamp, results counted, and both totals; `total_votes_cast` is the
+  larger of the two). It reports any electorate whose sums don't match its
+  totals, any partial count, and any candidate or party missing from the
+  official feed.
 - `legacy/` (`download.py`, `electorate.py`, `analyse.py`): the original CSV-based code (1999
   onwards). Can't currently be run because the CSVs are blocked. Expected to be
   rewritten or replaced with XML-based code. Keep them in case the CSVs become
